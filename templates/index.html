@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Converter</title>
+</head>
+<body>
+    <h1>Document Converter</h1>
+    <form action="/convert" method="post" enctype="multipart/form-data">
+        <label for="files">Upload Files:</label>
+        <input type="file" name="files" id="files" multiple required>
+        <br><br>
+        
+        <label for="formats">Select Output Formats:</label>
+        <select name="formats" id="formats" multiple required>
+            <option value="md">Markdown</option>
+            <option value="txt">Text</option>
+            <option value="json">JSON</option>
+            <option value="yaml">YAML</option>
+        </select>
+        <br><br>
+
+        <label for="output_path">Output Path:</label>
+        <input type="text" name="output_path" id="output_path" value="output" required>
+        <br><br>
+
+        <button type="submit">Convert</button>
+    </form>
+</body>
+</html>
