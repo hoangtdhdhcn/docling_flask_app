@@ -83,30 +83,73 @@ def convert_documents(input_paths, output_path, output_formats):
     )
 
     for input_path in input_paths:
-        conv_result = doc_converter.convert_all([input_path])
 
+        if not output_path.exists():
+            output_path.mkdir(parents=True, exist_ok=True)
+
+        conv_result = doc_converter.convert_all(input_paths)
+        
+        print(f"Converted all documents")
         for result in conv_result:
-            export_selected_formats(result, output_path, output_formats)
+            # output_path = Path("output")
+            print(
+                f"Document {result.input.file.name} converted."
+                f"\nSaved result output to: {str(output_path)}"
+            )
 
-            # Handle images (optional)
+            doc_filename = result.input.file.stem
+            export_selected_formats(result=result, output_path=output_path, formats=output_formats)
+
+            # Save images of figures and tables
             table_counter = 0
             picture_counter = 0
+
+            # Create directory for saving images
             now = datetime.now()
-            image_subdir = now.strftime(f"{result.input.file.stem}_%Y-%m-%d_%H%M%S")
-            image_dir = Path(output_path) / image_subdir
-            image_dir.mkdir(parents=True, exist_ok=True)
+            image_subdir = now.strftime(f"{doc_filename}_%Y-%m-%d_%H%M%S")
+            image_dir = output_path / image_subdir
+
+            if not image_dir.exists():
+                image_dir.mkdir(parents=True, exist_ok=True)
+
+            # Flags to check if we have any images or tables
+            found_table_or_picture = False
 
             for element, _level in result.document.iterate_items():
                 if isinstance(element, TableItem):
+                    found_table_or_picture = True
                     table_counter += 1
-                    element_image_filename = image_dir / f"{result.input.file.stem}-table-{table_counter}.png"
-                    with element_image_filename.open("wb") as fp:
-                        element.get_image(result.document).save(fp, "PNG")
+                    element_image_filename = (
+                        image_dir / f"{doc_filename}-table-{table_counter}.png"
+                    )
+                    
+                    # Check if get_image() returns None before saving
+                    image = element.get_image(result.document)
+                    if image:
+                        with element_image_filename.open("wb") as fp:
+                            image.save(fp, "PNG")
+                    else:
+                        print(f"Warning: Table {table_counter} in {doc_filename} could not be converted to image.")
+
                 if isinstance(element, PictureItem):
+                    found_table_or_picture = True
                     picture_counter += 1
-                    element_image_filename = image_dir / f"{result.input.file.stem}-picture-{picture_counter}.png"
-                    with element_image_filename.open("wb") as fp:
-                        element.get_image(result.document).save(fp, "PNG")
+                    element_image_filename = (
+                        image_dir / f"{doc_filename}-picture-{picture_counter}.png"
+                    )
+                    
+                    # Check if get_image() returns None before saving
+                    image = element.get_image(result.document)
+                    if image:
+                        with element_image_filename.open("wb") as fp:
+                            image.save(fp, "PNG")
+                    else:
+                        print(f"Warning: Picture {picture_counter} in {doc_filename} could not be converted to image.")
+
+            # If no table or picture was found, continue the program
+            if not found_table_or_picture:
+                print(f"No tables or images found in {doc_filename}. Skipping image save.")
+                continue  # Skip to the next document
 
 @app.route('/convert', methods=['POST'])
 def convert():
