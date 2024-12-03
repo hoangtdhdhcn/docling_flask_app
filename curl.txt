@@ -1,1 +1,13 @@
-curl -X POST -F "files=@file1.pdf" -F "files=@file2.docx" -F "formats=md" -F "formats=txt" -F "output_path=output" http://localhost:5000/convert
+1. Convert the documents endpoint:
+curl -X POST http://localhost:25041/convert \
+  -F "files=@path_to_file/document1.pdf" \
+  -F "files=@path_to_file/document2.docx" \
+  -F "formats=md" \
+  -F "formats=json" \
+  -F "output_path=converted_files"
+
+
+2. Download the converted documents:
+curl -O http://localhost:25041/download/converted_files/document1.md
+
+
